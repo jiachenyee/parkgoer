@@ -10,25 +10,31 @@ import MapKit
 
 struct ParkingMapView: View {
     
+    @Environment(NavigationManager.self) var navigationManager
+    
     @Binding var selectedParking: Parking?
     
     @Binding var mapCameraPosition: MapCameraPosition
     
     @Binding var mapFilterRegion: MapFilterRegion
-    
-    @Binding var isReloadDataConfirmationPresented: Bool
-    
-    @Binding var isShowAllQRAlertPresented: Bool
-    
+        
     var parkingSpots: [Parking]
     
     @Environment(BicycleFetchManager.self) var bicycleManager
     
     @Namespace var namespace
     
+    @State private var isFollowingUserLocation: Bool = false
+    
     var body: some View {
+        @Bindable var navigationManager = navigationManager
+        
         ZStack {
-            Map(position: $mapCameraPosition, selection: $selectedParking, scope: namespace) {
+            Map(position: $mapCameraPosition,
+                interactionModes: [.pan, .rotate, .zoom],
+                selection: $selectedParking,
+                scope: namespace) {
+                
                 UserAnnotation()
                 
                 ForEach(parkingSpots) { spot in
@@ -45,6 +51,7 @@ struct ParkingMapView: View {
                 withAnimation {
                     mapFilterRegion.region = context.region
                     mapFilterRegion.loadFullData = false
+                    isFollowingUserLocation = mapCameraPosition.followsUserLocation
                 }
             }
             .onMapCameraChange(frequency: .onEnd) { context in
@@ -59,37 +66,30 @@ struct ParkingMapView: View {
                 MapUserLocationButton()
             }
             
-            if #unavailable(iOS 26.0) {
-                VStack(alignment: .leading) {
-                    if let location = mapFilterRegion.region?.center {
-                        WeatherView(location: location, isShowAllQRAlertPresented: $isShowAllQRAlertPresented)
-                            .frame(height: 48)
-                            .background(.thickMaterial)
-                            .clipShape(.rect(cornerRadius: 16, style: .continuous))
-                    }
-                    
-                    Group {
-                        if bicycleManager.isLoading {
-                            ProgressView()
-                                .frame(width: 48, height: 48)
-                                .background(.thickMaterial)
-                                .clipShape(.rect(cornerRadius: 16, style: .continuous))
-                        } else {
-                            Button {
-                                isReloadDataConfirmationPresented = true
-                            } label: {
-                                Image(systemName: "arrow.clockwise")
-                                    .frame(width: 48, height: 48)
-                                    .background(.thickMaterial)
-                                    .clipShape(.rect(cornerRadius: 16, style: .continuous))
-                            }
-                            .badge(bicycleManager.needsUpdate ? 1 : 0)
+            if isFollowingUserLocation {
+                Circle()
+                    .trim(from: 0.08, to: 0.92)
+                    .stroke(lineWidth: 2)
+                    .rotationEffect(.degrees(-90))
+                    .overlay(alignment: .top) {
+                        HStack {
+                            Image(systemName: "bicycle")
+                            Text(mapFilterRegion.cyclingEstimateOutput)
+                                .monospacedDigit()
+                                .contentTransition(.numericText())
                         }
+                        .font(.system(size: 16, weight: .medium))
                     }
-                }
-                .padding(.horizontal)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    .padding()
+                    .shadow(color: Color(uiColor: .systemBackground), radius: 4, x: 0, y: 0)
+                    .shadow(color: Color(uiColor: .systemBackground), radius: 4, x: 0, y: 0)
+                    .allowsHitTesting(false)
+                    .sensoryFeedback(.selection, trigger: mapFilterRegion.cycleHapticTrigger)
             }
+            
+            LegacyControlsLayerView(mapFilterRegion: mapFilterRegion,
+                                    isReloadDataConfirmationPresented: $navigationManager.isReloadDataConfirmationPresented,
+                                    isShowAllQRAlertPresented: $navigationManager.isShowAllQRAlertPresented)
         }
         .onChange(of: selectedParking) { oldValue, newValue in
             if let newValue {

@@ -41,6 +41,16 @@ struct ParkingDetailView: View {
                 
                 LookAroundView(coordinate: spot.coordinate)
                 
+//                Button {
+//                    
+//                } label: {
+//                    Label("Plan Route", systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
+//                        .padding()
+//                        .frame(maxWidth: .infinity)
+//                }
+//                .buttonStyle(.borderedProminent)
+//                .padding(.vertical)
+                
                 if let organization = spot.rackType.fullName {
                     Text("By \(organization).")
                         .foregroundColor(.secondary)

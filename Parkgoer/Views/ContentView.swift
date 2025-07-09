@@ -11,24 +11,22 @@ import SwiftData
 
 struct ContentView: View {
     
-    @State private var isShowAllQRAlertPresented = false
     @AppStorage("showAllQR") private var showAllQR = false
     
     @Binding var mapFilterRegion: MapFilterRegion
     
     @State private var bicycleManager = BicycleFetchManager()
-    
     @State private var locationManager = LocationManager()
+    @State private var navigationManager = NavigationManager()
+    @State private var mapSearchManager = MapSearchManager()
     
     @State private var selectedParking: Parking? = nil
     
     @Environment(\.modelContext) private var modelContext
     
-    @State private var mapSearchManager = MapSearchManager()
-    
     @Query private var parkingSpots: [Parking]
     
-    @State private var isReloadDataConfirmationPresented = false
+    @State private var mapCameraPosition = MapCameraPosition.userLocation(fallback: .automatic)
     
     init(mapFilterRegion: Binding<MapFilterRegion>) {
         self._mapFilterRegion = mapFilterRegion
@@ -39,7 +37,10 @@ struct ContentView: View {
             let minLatitude = mapFilterRegion.wrappedValue.minLatitude
             let maxLatitude = mapFilterRegion.wrappedValue.maxLatitude
             
+            let minimumSpotsToDisplay = mapFilterRegion.wrappedValue.minimumSpotsToDisplay
+            
             var descriptor = FetchDescriptor<Parking>(predicate: #Predicate {
+                $0.rackCount >= minimumSpotsToDisplay &&
                 $0.longitude >= minLongitude &&
                 $0.longitude <= maxLongitude &&
                 $0.latitude >= minLatitude &&
@@ -61,86 +62,23 @@ struct ContentView: View {
         }
     }
     
-    @State private var mapCameraPosition = MapCameraPosition.userLocation(fallback: .automatic)
-    
     var body: some View {
-        
-        @Bindable var mapSearchManager = mapSearchManager
-        
         NavigationStack {
             ParkingMapView(selectedParking: $selectedParking,
                            mapCameraPosition: $mapCameraPosition,
                            mapFilterRegion: $mapFilterRegion,
-                           isReloadDataConfirmationPresented: $isReloadDataConfirmationPresented,
-                           isShowAllQRAlertPresented: $isShowAllQRAlertPresented,
                            parkingSpots: parkingSpots)
             .sheet(isPresented: .constant(true)) {
-                NavigationStack {
-                    Group {
-                        if mapSearchManager.isSearching {
-                            MapSearchResultsView(mapCameraPosition: $mapCameraPosition)
-                        } else {
-                            ParkingSpotsModalView(selectedParking: $selectedParking,
-                                                  mapFilterRegion: $mapFilterRegion,
-                                                  parking: parkingSpots,
-                                                  currentLocation: locationManager.coordinate)
-                        }
-                    }
-                    .searchable(text: $mapSearchManager.searchQuery)
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbarVisibility(.hidden, for: .navigationBar)
-                }
-                .presentationDetents([.height(200), .medium, .large], selection: $mapSearchManager.detent)
-                .presentationBackgroundInteraction(.enabled)
-                .interactiveDismissDisabled()
-                .alert("Update Parking Data?", isPresented: $isReloadDataConfirmationPresented) {
-                    Button("Update Data") {
-                        Task {
-                            try await bicycleManager.fetchParkingData()
-                        }
-                    }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    Text("This is an infrequent operation that fetches the latest parking data from the server. It may take a while to complete.")
-                }
-                .alert(showAllQR ? "Enable Location Check for QR Codes" :  "Disable Location Check for QR Codes", isPresented: $isShowAllQRAlertPresented) {
-                    Button(showAllQR ? "Enable" : "Disable", role: .destructive) {
-                        showAllQR.toggle()
-                    }
-                    Button("Cancel", role: .cancel) {}
-                } message: {
-                    if showAllQR {
-                        Text("Enable the location check for QR codes? This will only allow you to view the QR code if you are within 100 m of it.")
-                    } else {
-                        Text("Disable the location check for QR codes? This will only allow you to view the QR codes outside of the 100 m range.")
-                    }
-                }
+                SheetContentView(mapCameraPosition: $mapCameraPosition,
+                                 selectedParking: $selectedParking,
+                                 mapFilterRegion: $mapFilterRegion,
+                                 showAllQR: $showAllQR,
+                                 parkingSpots: parkingSpots)
             }
             .onAppear {
                 bicycleManager.modelContext = modelContext
             }
-            .toolbar {
-                if #available(iOS 26.0, *) {
-                    ToolbarItem {
-                        Group {
-                            if bicycleManager.isLoading {
-                                ProgressView()
-                            } else {
-                                Button("Reload", systemImage: "arrow.clockwise") {
-                                    isReloadDataConfirmationPresented = true
-                                }
-                            }
-                        }
-                        .badge(bicycleManager.needsUpdate ? 1 : 0)
-                    }
-                    if let location = mapFilterRegion.region?.center {
-                        ToolbarItem(placement: .topBarLeading) {
-                            WeatherView(location: location, isShowAllQRAlertPresented: $isShowAllQRAlertPresented)
-                        }
-                    }
-                }
-            }
-            .toolbarVisibility(shouldToolbarBeVisible() ? .visible : .hidden, for: .navigationBar)
+            .modifier(ToolbarViewModifier(location: mapFilterRegion.region?.center))
             .task {
                 bicycleManager.needsUpdate = await bicycleManager.checkForDatasetUpdate()
                 if await bicycleManager.needsToAutoFetch() {
@@ -151,6 +89,7 @@ struct ContentView: View {
         .environment(locationManager)
         .environment(bicycleManager)
         .environment(mapSearchManager)
+        .environment(navigationManager)
     }
     
     func shouldToolbarBeVisible() -> Bool {
