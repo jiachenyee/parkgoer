@@ -1,0 +1,15 @@
+{
+  "originHash" : "9331725034899fa36f63267120b129718e4abf91673df36408f6748e1f327b19",
+  "pins" : [
+    {
+      "identity" : "singaporekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jiachenyee/SingaporeKit",
+      "state" : {
+        "revision" : "209b0ada4a2f8306aeaa20b9cd975d3f33639dd4",
+        "version" : "0.0.3"
+      }
+    }
+  ],
+  "version" : 3
+}
