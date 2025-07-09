@@ -34,8 +34,8 @@ struct ParkingAndDistance: Identifiable {
     
     var displaySubtitle: String {
         var dataToDisplay: [String] = []
-        if let distanceString { dataToDisplay.append("\(distanceString) away") }
         if parking.qrCode == nil { dataToDisplay.append("QR Code Unavailable") }
+        if let distanceString { dataToDisplay.append("\(distanceString) away") }
         
         return dataToDisplay.joined(separator: " • ")
     }

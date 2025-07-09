@@ -56,14 +56,21 @@ struct ParkingSpotsModalView: View {
                                                     .stroke(Color.yellow, lineWidth: 2)
                                             }
                                         }
+                                        .padding(.trailing, 8)
                                     
                                     VStack(alignment: .leading) {
                                         Text(spot.parking.beautifiedName)
                                             .font(.headline)
-                                        
-                                        Text(spot.displaySubtitle)
-                                            .font(.subheadline)
-                                            .foregroundStyle(.secondary)
+                                        HStack(alignment: .top) {
+                                            if spot.parking.qrCode == nil {
+                                                Image(systemName: "exclamationmark.triangle.fill")
+                                                    .foregroundStyle(.yellow)
+                                            }
+                                            
+                                            Text(spot.displaySubtitle)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        .font(.subheadline)
                                     }
                                     .frame(maxWidth: .infinity, alignment: .leading)
                                     
@@ -78,17 +85,17 @@ struct ParkingSpotsModalView: View {
                                              Color(uiColor: .secondaryLabel))
                         }
                         .buttonStyle(.bordered)
-                        .buttonBorderShape(.roundedRectangle)
+                        .buttonBorderShape(.roundedRectangle(radius: 24))
                     }
-                    .padding(.horizontal)
+                    .padding()
                 }
                 .scrollContentBackground(.hidden)
             }
         }
-        .navigationTitle("What’s Around?")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(item: $selectedParking) { spot in
             ParkingDetailView(spot: spot)
+                .toolbarVisibility(.visible, for: .navigationBar)
         }
     }
 }

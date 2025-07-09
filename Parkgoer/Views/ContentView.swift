@@ -24,6 +24,8 @@ struct ContentView: View {
     
     @Environment(\.modelContext) private var modelContext
     
+    @State private var mapSearchManager = MapSearchManager()
+    
     @Query private var parkingSpots: [Parking]
     
     @State private var isReloadDataConfirmationPresented = false
@@ -62,6 +64,9 @@ struct ContentView: View {
     @State private var mapCameraPosition = MapCameraPosition.userLocation(fallback: .automatic)
     
     var body: some View {
+        
+        @Bindable var mapSearchManager = mapSearchManager
+        
         NavigationStack {
             ParkingMapView(selectedParking: $selectedParking,
                            mapCameraPosition: $mapCameraPosition,
@@ -71,12 +76,21 @@ struct ContentView: View {
                            parkingSpots: parkingSpots)
             .sheet(isPresented: .constant(true)) {
                 NavigationStack {
-                    ParkingSpotsModalView(selectedParking: $selectedParking,
-                                          mapFilterRegion: $mapFilterRegion,
-                                          parking: parkingSpots,
-                                          currentLocation: locationManager.coordinate)
+                    Group {
+                        if mapSearchManager.isSearching {
+                            MapSearchResultsView(mapCameraPosition: $mapCameraPosition)
+                        } else {
+                            ParkingSpotsModalView(selectedParking: $selectedParking,
+                                                  mapFilterRegion: $mapFilterRegion,
+                                                  parking: parkingSpots,
+                                                  currentLocation: locationManager.coordinate)
+                        }
+                    }
+                    .searchable(text: $mapSearchManager.searchQuery)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbarVisibility(.hidden, for: .navigationBar)
                 }
-                .presentationDetents([.height(150), .medium, .large])
+                .presentationDetents([.height(200), .medium, .large], selection: $mapSearchManager.detent)
                 .presentationBackgroundInteraction(.enabled)
                 .interactiveDismissDisabled()
                 .alert("Update Parking Data?", isPresented: $isReloadDataConfirmationPresented) {
@@ -136,6 +150,7 @@ struct ContentView: View {
         }
         .environment(locationManager)
         .environment(bicycleManager)
+        .environment(mapSearchManager)
     }
     
     func shouldToolbarBeVisible() -> Bool {
