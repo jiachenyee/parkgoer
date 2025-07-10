@@ -31,48 +31,7 @@ struct SheetContentView: View {
         NavigationStack {
             Group {
                 if navigationManager.isRoutePresented {
-                    VStack {
-                        HStack {
-                            if #available(iOS 26.0, *) {
-                                VStack(spacing: 0) {
-                                    Button {
-                                        
-                                    } label: {
-                                        Text("Start of Route")
-                                            .padding()
-                                            .frame(maxWidth: .infinity)
-                                    }
-                                    
-                                    Divider()
-                                    
-                                    Button {
-                                        
-                                    } label: {
-                                        Text("End Route")
-                                            .padding()
-                                            .frame(maxWidth: .infinity)
-                                    }
-                                }
-                                .glassEffect(.regular, in: RoundedRectangle(cornerRadius: 32), isEnabled: true)
-                            } else {
-                                // Fallback on earlier versions
-                            }
-                            
-                            Spacer()
-                            
-                            Button {
-                                
-                            } label: {
-                                Image(systemName: "bicycle")
-                                    .frame(width: 48, height: 48)
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .buttonBorderShape(.circle)
-                        }
-                        
-                        Spacer()
-                    }
-                    .safeAreaPadding()
+                    RoutePlanningView()
                 } else {
                     if mapSearchManager.isSearching {
                         MapSearchResultsView(mapCameraPosition: $mapCameraPosition)
@@ -84,7 +43,7 @@ struct SheetContentView: View {
                     }
                 }
             }
-            .searchable(text: $mapSearchManager.searchQuery)
+            .searchable(text: $mapSearchManager.searchQuery, prompt: "Search anywhere in Singapore")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarVisibility(.hidden, for: .navigationBar)
         }

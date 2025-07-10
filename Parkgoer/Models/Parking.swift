@@ -15,7 +15,14 @@ final class Parking: Decodable, Identifiable {
     var name: String
     
     var beautifiedName: String {
-        name.replacingOccurrences(of: "_", with: "").capitalized
+        var name = name.lowercased().replacingOccurrences(of: "_", with: " ")
+        
+        if name.split(separator: " ").last == "yb" {
+            name.removeLast(2)
+        }
+        
+        return name.capitalized
+            .replacingOccurrences(of: " Yb ", with: " ")
             .replacingOccurrences(of: "Macpherson", with: "MacPherson")
             .replacingOccurrences(of: "Mrt", with: "MRT")
             .replacingOccurrences(of: "Ite", with: "ITE")

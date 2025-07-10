@@ -45,17 +45,18 @@ struct ToolbarViewModifier: ViewModifier {
                         }
                     }
                     
-//                    ToolbarSpacer(placement: .topBarLeading)
-//                    
-//                    ToolbarItem(placement: .topBarLeading) {
-//                        Toggle(isOn: $navigationManager.isRoutePresented) {
-//                            Label("Generate Route",
-//                                  systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
-//                        }
-//                    }
+                    ToolbarSpacer(placement: .topBarLeading)
+                    
+                    ToolbarItem(placement: .bottomBar) {
+                        Toggle(isOn: $navigationManager.isRoutePresented) {
+                            Label("Generate Route",
+                                  systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
+                        }
+                    }
                 }
         } else {
             content
+                .toolbarVisibility(.hidden, for: .navigationBar)
         }
     }
 }
