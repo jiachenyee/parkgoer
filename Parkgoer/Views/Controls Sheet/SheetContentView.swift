@@ -27,11 +27,11 @@ struct SheetContentView: View {
     var body: some View {
         @Bindable var mapSearchManager = mapSearchManager
         @Bindable var navigationManager = navigationManager
-
+        
         NavigationStack {
             Group {
                 if navigationManager.isRoutePresented {
-                    RoutePlanningView()
+                    RoutesView(selectedParking: $selectedParking)
                 } else {
                     if mapSearchManager.isSearching {
                         MapSearchResultsView(mapCameraPosition: $mapCameraPosition)
@@ -46,6 +46,10 @@ struct SheetContentView: View {
             .searchable(text: $mapSearchManager.searchQuery, prompt: "Search anywhere in Singapore")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarVisibility(.hidden, for: .navigationBar)
+            .navigationDestination(item: $selectedParking) { spot in
+                ParkingDetailView(selectedParking: $selectedParking, spot: spot)
+                    .toolbarVisibility(.visible, for: .navigationBar)
+            }
         }
         .presentationDetents([.height(200), .medium, .large], selection: $mapSearchManager.detent)
         .presentationBackgroundInteraction(.enabled)

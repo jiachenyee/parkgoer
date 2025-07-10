@@ -26,6 +26,8 @@ struct ParkingMapView: View {
     
     @State private var isFollowingUserLocation: Bool = false
     
+    @Environment(RoutePlanningManager.self) private var routePlanningManager
+    
     var body: some View {
         @Bindable var navigationManager = navigationManager
         
@@ -37,10 +39,48 @@ struct ParkingMapView: View {
                 
                 UserAnnotation()
                 
-                ForEach(parkingSpots) { spot in
-                    Marker(spot.beautifiedName, systemImage: spot.rackType.symbol, coordinate: spot.coordinate)
-                        .tint(.blue)
-                        .tag(spot)
+                if let route = routePlanningManager.route, navigationManager.isRoutePresented && routePlanningManager.tab == .plan {
+                    
+                    ForEach(route.allParkings) { spot in
+                        Marker(spot.beautifiedName, systemImage: spot.rackType.symbol, coordinate: spot.coordinate)
+                            .tint(.blue)
+                            .tag(spot)
+                    }
+                    
+                    ForEach(route.subroutes) { subroute in
+                        MapPolyline(points: route.coordinates.map({
+                            MKMapPoint($0)
+                        }), contourStyle: .geodesic)
+                        .stroke((subroute.overshot ?? false) ? .yellow : .blue,
+                                style: .init(lineWidth: 10, lineCap: .round, lineJoin: .round))
+                    }
+                } else {
+                    ForEach(parkingSpots) { spot in
+                        if navigationManager.isRoutePresented && routePlanningManager.tab == .plan {
+                            if routePlanningManager.startParking == spot {
+                                Marker(spot.beautifiedName,
+                                       systemImage: "flag",
+                                       coordinate: spot.coordinate)
+                                .tint(.blue)
+                                .tag(spot)
+                            } else if routePlanningManager.endParking == spot {
+                                Marker(spot.beautifiedName,
+                                       systemImage: "flag.fill",
+                                       coordinate: spot.coordinate)
+                                .tint(.blue)
+                                .tag(spot)
+                            } else {
+                                Marker(spot.beautifiedName, systemImage: spot.rackType.symbol, coordinate: spot.coordinate)
+                                    .tint(.blue.opacity(0.2))
+                                    .tag(spot)
+                            }
+                            
+                        } else {
+                            Marker(spot.beautifiedName, systemImage: spot.rackType.symbol, coordinate: spot.coordinate)
+                                .tint(.blue)
+                                .tag(spot)
+                        }
+                    }
                 }
             }
             .mapStyle(.standard(elevation: .automatic,

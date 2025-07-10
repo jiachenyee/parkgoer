@@ -17,30 +17,29 @@ struct ParkingQRButton: View {
     
     var body: some View {
         if let qrCode = parking.qrCode {
-            if showAllQR || distance <= 100 {
-                Button {
-                    isQRPresented.toggle()
-                } label: {
-                    Label("Parking QR Code", systemImage: "qrcode")
-                        .padding()
-                        .frame(maxWidth: .infinity)
+            Group {
+                if showAllQR || distance <= 100 {
+                    Button {
+                        isQRPresented.toggle()
+                    } label: {
+                        Label("Parking QR Code", systemImage: "qrcode")
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                } else {
+                    Text("Be within 100 m of the parking spot to access the parking QR code.")
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
-                .buttonStyle(.bordered)
-                .padding(.vertical)
-                .sheet(isPresented: $isQRPresented) {
-                    QRView(qrCode: qrCode)
-                }
-            } else {
-                Text("Be within 100 m of the parking spot to access the parking QR code.")
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical)
+            }
+            .sheet(isPresented: $isQRPresented) {
+                QRView(qrCode: qrCode)
             }
         } else {
             Text("QR code is unavailable for this parking spot.")
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical)
         }
     }
 }

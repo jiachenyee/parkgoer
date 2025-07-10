@@ -24,6 +24,11 @@ struct ParkingAndDistance: Identifiable {
         }
     }
     
+    init(parking: Parking, distance: Double?) {
+        self.parking = parking
+        self.distance = distance
+    }
+    
     var distanceString: String? {
         if let distance {
             return Measurement<UnitLength>(value: distance, unit: .meters).formatted()

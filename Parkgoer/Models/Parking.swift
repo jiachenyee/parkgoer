@@ -10,7 +10,7 @@ import CoreLocation
 import SwiftData
 
 @Model
-final class Parking: Decodable, Identifiable {
+final class Parking: Decodable, Identifiable, Equatable {
     
     var name: String
     

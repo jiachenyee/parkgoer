@@ -41,48 +41,9 @@ struct ParkingSpotsModalView: View {
                 ScrollView {
                     LazyVStack {
                         ForEach(parkingSpots) { spot in
-                            Button {
+                            ParkingSpotRowView(action: {
                                 selectedParking = spot.parking
-                            } label: {
-                                HStack {
-                                    Image(systemName: spot.parking.rackType.symbol)
-                                        .font(.title3)
-                                        .foregroundStyle(Color.accentColor)
-                                        .frame(width: symbolWidth)
-                                        .padding(.vertical, 4)
-                                        .overlay {
-                                            if spot.parking.rackType.isYellowBox {
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .stroke(Color.yellow, lineWidth: 2)
-                                            }
-                                        }
-                                        .padding(.trailing, 8)
-                                    
-                                    VStack(alignment: .leading) {
-                                        Text(spot.parking.beautifiedName)
-                                            .font(.headline)
-                                        HStack(alignment: .top) {
-                                            if spot.parking.qrCode == nil {
-                                                Image(systemName: "exclamationmark.triangle.fill")
-                                                    .foregroundStyle(.yellow)
-                                            }
-                                            
-                                            Text(spot.displaySubtitle)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                        .font(.subheadline)
-                                    }
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    
-                                    Image(systemName: "chevron.right")
-                                        .foregroundStyle(.secondary)
-                                        .padding(.trailing)
-                                }
-                                .multilineTextAlignment(.leading)
-                                .padding(.vertical)
-                            }
-                            .foregroundStyle(Color(uiColor: .label),
-                                             Color(uiColor: .secondaryLabel))
+                            }, spot: spot)
                         }
                         .buttonStyle(.bordered)
                         .buttonBorderShape(.roundedRectangle(radius: 24))
@@ -93,9 +54,5 @@ struct ParkingSpotsModalView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(item: $selectedParking) { spot in
-            ParkingDetailView(spot: spot)
-                .toolbarVisibility(.visible, for: .navigationBar)
-        }
     }
 }

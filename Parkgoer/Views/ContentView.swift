@@ -19,6 +19,7 @@ struct ContentView: View {
     @State private var locationManager = LocationManager()
     @State private var navigationManager = NavigationManager()
     @State private var mapSearchManager = MapSearchManager()
+    @State private var routePlanningManager = RoutePlanningManager()
     
     @State private var selectedParking: Parking? = nil
     
@@ -77,6 +78,7 @@ struct ContentView: View {
             }
             .onAppear {
                 bicycleManager.modelContext = modelContext
+                routePlanningManager.modelContext = modelContext
             }
             .modifier(ToolbarViewModifier(location: mapFilterRegion.region?.center))
             .task {
@@ -90,6 +92,7 @@ struct ContentView: View {
         .environment(bicycleManager)
         .environment(mapSearchManager)
         .environment(navigationManager)
+        .environment(routePlanningManager)
     }
     
     func shouldToolbarBeVisible() -> Bool {

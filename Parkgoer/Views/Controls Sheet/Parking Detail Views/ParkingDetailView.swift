@@ -10,6 +10,8 @@ import MapKit
 
 struct ParkingDetailView: View {
     
+    @Binding var selectedParking: Parking?
+    
     var spot: Parking
     
     @Environment(LocationManager.self) private var locationManager
@@ -36,20 +38,13 @@ struct ParkingDetailView: View {
                 }
                 
                 ParkingSpotDataView(spot: spot)
+                    .padding(.bottom)
                 
+                RoutePlanningButton(parking: spot, selectedParking: $selectedParking)
+                    
                 ParkingQRButton(distance: distance ?? 999, parking: spot)
                 
                 LookAroundView(coordinate: spot.coordinate)
-                
-//                Button {
-//                    
-//                } label: {
-//                    Label("Plan Route", systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
-//                        .padding()
-//                        .frame(maxWidth: .infinity)
-//                }
-//                .buttonStyle(.borderedProminent)
-//                .padding(.vertical)
                 
                 if let organization = spot.rackType.fullName {
                     Text("By \(organization).")

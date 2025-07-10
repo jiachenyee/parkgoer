@@ -39,18 +39,20 @@ struct ToolbarViewModifier: ViewModifier {
                         .badge(bicycleManager.needsUpdate ? 1 : 0)
                     }
                     
+                    if RoutePlanningManager.isRoutePlanningAvailable {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Toggle(isOn: $navigationManager.isRoutePresented) {
+                                Label("Routes",
+                                      systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
+                            }
+                        }
+                        
+                        ToolbarSpacer(placement: .topBarLeading)
+                    }
+                    
                     if let location {
                         ToolbarItem(placement: .topBarLeading) {
                             WeatherView(location: location, isShowAllQRAlertPresented: $navigationManager.isShowAllQRAlertPresented)
-                        }
-                    }
-                    
-                    ToolbarSpacer(placement: .topBarLeading)
-                    
-                    ToolbarItem(placement: .bottomBar) {
-                        Toggle(isOn: $navigationManager.isRoutePresented) {
-                            Label("Generate Route",
-                                  systemImage: "point.bottomleft.forward.to.point.topright.filled.scurvepath")
                         }
                     }
                 }
